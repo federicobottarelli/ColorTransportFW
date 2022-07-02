@@ -8,7 +8,7 @@ from PIL import Image
 from matplotlib import image as mpimg
 
 level = st.slider("Select the number of color centroids", 1, 32, value=16)
-num_epochs = st.number_input('Set the number of epochs', 10, 1e6)
+num_epochs = st.number_input('Set the number of epochs', 10, int(1e6))
 
 
 # Create a button, that when clicked, shows a text
