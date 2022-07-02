@@ -8,6 +8,7 @@ from PIL import Image
 from matplotlib import image as mpimg
 
 level = st.slider("Select the number of color centroids", 1, 32, value=16)
+num_epochs = st.number_input('Set the number of epochs', 10, 1e6)
 
 
 # Create a button, that when clicked, shows a text
@@ -71,7 +72,7 @@ if(start):
         T_init[0, :] = b
 
         # Do Color Transport
-        T_fw, iteration_counter, err, gradient, t = fw.min_fw(var=T_init, a=a, b=b, C=C, epoch=1000)
+        T_fw, iteration_counter, err, gradient, t = fw.min_fw(var=T_init, a=a, b=b, C=C, epoch=num_epochs)
 
         # Get color transferred image
         new_centers = image_processing.get_color_transfered_centers(T_fw, X, Y, a)
