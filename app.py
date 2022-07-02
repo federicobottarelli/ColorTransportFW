@@ -7,31 +7,7 @@ from sklearn.cluster import KMeans
 from PIL import Image
 from matplotlib import image as mpimg
 
-
-ref_image = mpimg.imread("reading.jpg")
-# ref_image = Image.open('reading.jpg')
-ref_mat = image_processing.img2mat(ref_image)
-
-# level = st.slider("Select the number of color centroids", 1, 64)
-
-## get color centroids via kmeans
-# define number of centroids
-# n_clusters = level
-n_clusters = 2
-# kmeans for reference
-kmeans32_ref = KMeans(n_clusters=n_clusters)
-kmeans32_ref.fit(ref_mat)
-
-# get coordinates
-Y = kmeans32_ref.cluster_centers_
-
-
-# create our input and output distributions (a and b respectively).
-_, c = np.unique(kmeans32_ref.labels_, return_counts=True)
-b = c/c.sum()
-
-st.write(b)
-
+level = st.slider("Select the number of color centroids", 1, 32, value=16)
 
 
 # Create a button, that when clicked, shows a text
@@ -43,6 +19,29 @@ if(start):
     else:
         st.text("Start clustering")
 
+        ## reference image
+        ref_image = mpimg.imread("reading.jpg")
+        # ref_image = Image.open('reading.jpg')
+        ref_mat = image_processing.img2mat(ref_image)
+
+        # level = st.slider("Select the number of color centroids", 1, 64)
+
+        ## get color centroids via kmeans
+        # define number of centroids
+        n_clusters = level
+        # n_clusters = 2
+        # kmeans for reference
+        kmeans32_ref = KMeans(n_clusters=n_clusters)
+        kmeans32_ref.fit(ref_mat)
+
+        # get coordinates
+        Y = kmeans32_ref.cluster_centers_
+
+        # create our input and output distributions (a and b respectively).
+        _, c = np.unique(kmeans32_ref.labels_, return_counts=True)
+        b = c/c.sum()
+
+        ## input image
         input_image = mpimg.imread(input_file)
         input_mat = image_processing.img2mat(input_image)
 
