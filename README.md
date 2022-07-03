@@ -1,4 +1,14 @@
 # ColorTransportFW
 Color Transport an image using Frank Wolf optimization methods.
 
-see results here [https://jelfes-colortransportfw-app-lrhnoq.streamlitapp.com/](https://jelfes-colortransportfw-app-lrhnoq.streamlitapp.com/)
+## Web App
+See the result here: [https://jelfes-colortransportfw-app-lrhnoq.streamlitapp.com/](https://jelfes-colortransportfw-app-lrhnoq.streamlitapp.com/)
+
+## TODO
+
+- [ ] add references to authors with github links at the bottom of the webpage  
+- [ ] cite the Transport paper  
+- [ ] give the option to select different FW methods 
+- [ ] add optional performance plots (e.g. error curve)  
+- [ ] add info about the problem itself (color transport)  
+- [ ] add info about FW  
