@@ -48,7 +48,7 @@ start = st.button("Start Color Transfer")
 
 ct = st.container()
 
-st.markdown("Created by: [Federico Bottarelli](https://github.com/canny891), [Jan Elfes](https://github.com/jelfes) and [Ivan Padezhki](https://github.com/ivanpadezhki)")
+st.caption("Created by: [Federico Bottarelli](https://github.com/canny891), [Jan Elfes](https://github.com/jelfes) and [Ivan Padezhki](https://github.com/ivanpadezhki)")
 
 
 with ct:
