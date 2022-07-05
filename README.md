@@ -6,9 +6,9 @@ See the result here: [https://jelfes-colortransportfw-app-lrhnoq.streamlitapp.co
 
 ## TODO
 
-- [ ] add references to authors with github links at the bottom of the webpage  
-- [ ] cite the Transport paper  
-- [ ] give the option to select different FW methods 
+- [x] add references to authors with github links at the bottom of the webpage
+- [ ] cite the Transport paper
+- [ ] give the option to select different FW methods
 - [ ] add optional performance plots (e.g. error curve)  
-- [ ] add info about the problem itself (color transport)  
-- [ ] add info about FW  
+- [ ] add info about the problem itself (color transport)
+- [ ] add info about FW

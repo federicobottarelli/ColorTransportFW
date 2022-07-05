@@ -46,62 +46,66 @@ with col2:
 
 start = st.button("Start Color Transfer")
 
-if(start):
-    st.text("Start clustering of the color centroids ...")
+ct = st.container()
 
-    ## get color centroids via kmeans
-    ref_mat = image_processing.img2mat(ref_image)
-    input_mat = image_processing.img2mat(input_image)
+st.markdown("Created by: [Federico Bottarelli](https://github.com/canny891), [Jan Elfes](https://github.com/jelfes) and [Ivan Padezhki](https://github.com/ivanpadezhki)")
 
 
-    # fit kmeans
-    kmeans32_ref = KMeans(n_clusters=n_clusters)
-    kmeans32_ref.fit(ref_mat)
+with ct:
+    if(start):
+        st.text("Start clustering of the color centroids ...")
 
-    st.text("... half done with the clustering ...")
+        ## get color centroids via kmeans
+        ref_mat = image_processing.img2mat(ref_image)
+        input_mat = image_processing.img2mat(input_image)
 
-    kmeans32_in = KMeans(n_clusters=n_clusters)
-    kmeans32_in.fit(input_mat)
 
-    # get coordinates
-    Y = kmeans32_ref.cluster_centers_
-    X = kmeans32_in.cluster_centers_
+        # fit kmeans
+        kmeans32_ref = KMeans(n_clusters=n_clusters)
+        kmeans32_ref.fit(ref_mat)
 
-    # create our input and output distributions (a and b respectively).
-    _, c = np.unique(kmeans32_ref.labels_, return_counts=True)
-    b = c/c.sum()
+        st.text("... half done with the clustering ...")
 
-    _, c = np.unique(kmeans32_in.labels_, return_counts=True)
-    a = c/c.sum()
+        kmeans32_in = KMeans(n_clusters=n_clusters)
+        kmeans32_in.fit(input_mat)
 
-    cl_input = kmeans32_in.labels_
+        # get coordinates
+        Y = kmeans32_ref.cluster_centers_
+        X = kmeans32_in.cluster_centers_
 
-    # create costmatrix C
-    C = np.zeros((a.size, b.size))
-    for i, x_i in enumerate(X):
-        for j, y_j in enumerate(Y):
-            C[i, j] = np.linalg.norm(x_i-y_j)
+        # create our input and output distributions (a and b respectively).
+        _, c = np.unique(kmeans32_ref.labels_, return_counts=True)
+        b = c/c.sum()
 
-    st.text("Start color transfer ...")
-    # perform Color Transport on the input image with FW.
+        _, c = np.unique(kmeans32_in.labels_, return_counts=True)
+        a = c/c.sum()
 
-    # set first dimension of T to b and all other entries to 0, then T is guaranteed to be feasible
-    T_init = np.zeros((a.size, b.size))
-    T_init[0, :] = b
+        cl_input = kmeans32_in.labels_
 
-    # Do Color Transport
-    T_fw, iteration_counter, err, gradient, t = fw.min_fw(var=T_init, a=a, b=b, C=C, epoch=num_epochs)
+        # create costmatrix C
+        C = np.zeros((a.size, b.size))
+        for i, x_i in enumerate(X):
+            for j, y_j in enumerate(Y):
+                C[i, j] = np.linalg.norm(x_i-y_j)
 
-    # Get color transferred image
-    new_centers = image_processing.get_color_transfered_centers(T_fw, X, Y, a)
-    ct_mat = image_processing.update_image(cl_input, new_centers, input_mat)
-    ct_image = ct_mat.reshape(input_image.shape)
+        st.text("Start color transfer ...")
+        # perform Color Transport on the input image with FW.
 
-    st.text("Done!")
-    st.write(f'Number of Iterations: {iteration_counter} \tError: {np.round(err[-1], 2)}, \t time: {np.round(t, 2)}s')
-    fig, ax = plt.subplots(1)
-    ax.imshow(ct_image)
-    ax.axis('off')
-    st.pyplot(fig)
+        # set first dimension of T to b and all other entries to 0, then T is guaranteed to be feasible
+        T_init = np.zeros((a.size, b.size))
+        T_init[0, :] = b
 
-    
+        # Do Color Transport
+        T_fw, iteration_counter, err, gradient, t = fw.min_fw(var=T_init, a=a, b=b, C=C, epoch=num_epochs)
+
+        # Get color transferred image
+        new_centers = image_processing.get_color_transfered_centers(T_fw, X, Y, a)
+        ct_mat = image_processing.update_image(cl_input, new_centers, input_mat)
+        ct_image = ct_mat.reshape(input_image.shape)
+
+        st.text("Done!")
+        st.write(f'Number of Iterations: {iteration_counter} \tError: {np.round(err[-1], 2)}, \t time: {np.round(t, 2)}s')
+        fig, ax = plt.subplots(1)
+        ax.imshow(ct_image)
+        ax.axis('off')
+        st.pyplot(fig)
