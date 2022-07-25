@@ -1,5 +1,7 @@
 import streamlit as st
 import fw
+import bcfw
+import asfw
 import image_processing
 import numpy as np
 import matplotlib.pyplot as plt
@@ -14,6 +16,8 @@ with st.sidebar:
     st.write("#### Hypeparameters:")
     n_clusters = st.slider("Select the number of color centroids", 1, 32, value=16)
     num_epochs = st.number_input('Set the number of epochs', 10, int(1e7), value=10000)
+    fw_type = st.selectbox('Choose the optimization Frank-Wolfe algorithm',
+     ('Classic Frank-Wolfe', 'Block-Coordinate Frank-Wolfe', 'Block-Coordinate Away-Step Frank-Wolfe'))
 
 
 st.title("Color Trasfer app")
@@ -21,7 +25,7 @@ st.write(
     """This app shows how you can use the Frank Wolfe Optimization algorithm to perform a color transfer between a reference image to an input image, like the example below."""
 )
 
-st.image("example.jpg")
+st.image("img/example.jpg")
 
 
 st.write(">More details and the link of the realted paper in the About page on the left menu")
@@ -41,7 +45,7 @@ with col1:
 
     fig, ax = plt.subplots(1)
     if input_file is None:
-        input_image = mpimg.imread("blue.jpg")
+        input_image = mpimg.imread("img/blue.jpg")
     else:
         input_image = mpimg.imread(input_file)
 
@@ -55,7 +59,7 @@ with col2:
 
     fig, ax = plt.subplots(1)
     if reference_file is None:
-        ref_image = mpimg.imread("reading.jpg")
+        ref_image = mpimg.imread("img/reading.jpg")
     else:
         ref_image = mpimg.imread(reference_file)
 
@@ -116,8 +120,15 @@ with ct:
         T_init = np.zeros((a.size, b.size))
         T_init[0, :] = b
 
-        # Do Color Transport
-        T_fw, iteration_counter, err, gradient, t = fw.min_fw(var=T_init, a=a, b=b, C=C, epoch=num_epochs)
+        # Do Color Transport ('Classic Frank-Wolfe', 'Block-Coordinate Frank-Wolfe', 'Block-Coordinate Away-Step Frank-Wolfe')
+        if fw_type == "Classic Frank-Wolfe":
+            T_fw, iteration_counter, err, gradient, t = fw.min_fw(var=T_init, a=a, b=b, C=C, epoch=num_epochs)
+            
+        elif fw_type == "Block-Coordinate Frank-Wolfe":
+            T_fw, iteration_counter, err, gradient, t = bcfw.min_block_fw(var=T_init, a=a, b=b, C=C, epoch=num_epochs)
+
+        else:
+            T_fw, iteration_counter, err, _, _, gradient, _, _, t = asfw.min_block_away_fw_ELS(var=T_init, a=a, b=b, C=C, epoch=num_epochs) # returned value == (var, it, errors, aw, S, gradient_norms, drop_steps, aways, t)
 
         # Get color transferred image
         new_centers = image_processing.get_color_transfered_centers(T_fw, X, Y, a)
@@ -130,3 +141,20 @@ with ct:
         ax.imshow(ct_image)
         ax.axis('off')
         st.pyplot(fig)
+
+
+
+
+        #     # init transport matrix for block method
+        # np.random.seed(815)
+        # T_init = np.zeros((a.size, b.size))
+        # T_init[0, :] = b
+
+        # T_block, iteration_counter, errors, gradients, t = min_block_fw(T_init, a, b, C, epoch=int(1000*32))
+
+        # new_centers = get_color_transfered_centers(T_block, X, Y, a)
+
+        # ct_mat = update_image(cl_input, new_centers, input_mat)
+        # ct_image = ct_mat.reshape(input_image.shape)
+
+        # print(f'Number of Iterations: {iteration_counter} \tError: {errors[-1]}, \t time: {np.round(t, 2)}s')
