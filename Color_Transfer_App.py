@@ -1,7 +1,10 @@
 import streamlit as st
+
 import fw
 import bcfw
 import asfw
+from utility import from_png_to_jpeg
+
 import image_processing
 import numpy as np
 import matplotlib.pyplot as plt
@@ -10,6 +13,8 @@ from sklearn.cluster import KMeans
 from PIL import Image
 from matplotlib import image as mpimg
 
+from io import BytesIO # to resize the plots in Streamlit
+import os # to convert png images in jpeg format
 
 
 with st.sidebar:
@@ -18,7 +23,7 @@ with st.sidebar:
     num_epochs = st.number_input('Set the number of epochs', 10, int(1e7), value=10000)
     fw_type = st.selectbox('Choose the optimization Frank-Wolfe algorithm',
      ('Classic Frank-Wolfe', 'Block-Coordinate Frank-Wolfe', 'Block-Coordinate Away-Step Frank-Wolfe'))
-
+    print_plots = st.checkbox("Show the error plot",)
 
 st.title("Color Trasfer app")
 st.write(
@@ -48,6 +53,8 @@ with col1:
         input_image = mpimg.imread("img/blue.jpg")
     else:
         input_image = mpimg.imread(input_file)
+        if isinstance(input_image[0,0,0],np.float32):  # if is png convert to jpeg (from [0,1] to [0,256])               
+            input_image = from_png_to_jpeg(input_image)
 
     ax.imshow(input_image)
     ax.axis('off')
@@ -55,13 +62,16 @@ with col1:
 
 with col2:
     st.write('#### Upload your own reference file:')
-    reference_file = st.file_uploader(label='Upload an image you would like as reference:', type=['jpg', 'jpeg', 'png'], accept_multiple_files=False)
+    reference_file = st.file_uploader(label='Upload an image you would like as reference:', type=['jpg', 'jpeg', 'png'], accept_multiple_files=False)  
+
 
     fig, ax = plt.subplots(1)
     if reference_file is None:
         ref_image = mpimg.imread("img/reading.jpg")
     else:
         ref_image = mpimg.imread(reference_file)
+        if isinstance(ref_image[0,0,0],np.float32): 
+            ref_image = from_png_to_jpeg(ref_image)
 
     ax.imshow(ref_image)
     ax.axis('off')
@@ -128,7 +138,7 @@ with ct:
             T_fw, iteration_counter, err, gradient, t = bcfw.min_block_fw(var=T_init, a=a, b=b, C=C, epoch=num_epochs)
 
         else:
-            T_fw, iteration_counter, err, _, _, gradient, _, _, t = asfw.min_block_away_fw_ELS(var=T_init, a=a, b=b, C=C, epoch=num_epochs) # returned value == (var, it, errors, aw, S, gradient_norms, drop_steps, aways, t)
+            T_fw, iteration_counter, err, aw_number, _, gradient, drop_steps, _, t = asfw.min_block_away_fw_ELS(var=T_init, a=a, b=b, C=C, epoch=num_epochs)
 
         # Get color transferred image
         new_centers = image_processing.get_color_transfered_centers(T_fw, X, Y, a)
@@ -136,25 +146,23 @@ with ct:
         ct_image = ct_mat.reshape(input_image.shape)
 
         st.text("Done!")
-        st.write(f'Number of Iterations: {iteration_counter} \tError: {np.round(err[-1], 2)}, \t time: {np.round(t, 2)}s')
+        if (fw_type == "Classic Frank-Wolfe") or (fw_type == "Block-Coordinate Frank-Wolfe"):
+            st.write(f'Number of Iterations: {iteration_counter} \tError: {np.round(err[-1], 2)}, \t time: {np.round(t, 2)}s')
+        else:
+            st.write(f'Number of Iterations: {iteration_counter} \tError: {np.round(err[-1], 2)}, \t time: {np.round(t, 2)}s \taway-steps: {aw_number} \tdrop-steps: {drop_steps}')
+
         fig, ax = plt.subplots(1)
         ax.imshow(ct_image)
         ax.axis('off')
         st.pyplot(fig)
 
-
-
-
-        #     # init transport matrix for block method
-        # np.random.seed(815)
-        # T_init = np.zeros((a.size, b.size))
-        # T_init[0, :] = b
-
-        # T_block, iteration_counter, errors, gradients, t = min_block_fw(T_init, a, b, C, epoch=int(1000*32))
-
-        # new_centers = get_color_transfered_centers(T_block, X, Y, a)
-
-        # ct_mat = update_image(cl_input, new_centers, input_mat)
-        # ct_image = ct_mat.reshape(input_image.shape)
-
-        # print(f'Number of Iterations: {iteration_counter} \tError: {errors[-1]}, \t time: {np.round(t, 2)}s')
+                # print error plots if requested
+        if print_plots:
+            st.write("#### Error plot")
+            fig, ax = plt.subplots(figsize=(6, 3))
+            ax.plot(err)
+            ax.set_yscale('log')
+            buf = BytesIO() # those lines are necessary for resizing the plot
+            fig.savefig(buf, format="png")
+            st.image(buf)
+            # st.pyplot(fig)

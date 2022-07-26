@@ -9,7 +9,7 @@ See the result here: [https://jelfes-colortransportfw-app-lrhnoq.streamlitapp.co
 - [x] add references to authors with github links at the bottom of the webpage
 - [x] cite the Transport paper (Maybe add small introduction)
 - [x] give the option to select different FW methods
-- [ ] add optional performance plots (e.g. error curve)
+- [x] add optional performance plots (e.g. error curve)
 - [ ] add info about the problem itself (color transport)
 - [ ] add info about FW
-- [ ] only PNG works right now!
+- [x] PNG doesn't work
